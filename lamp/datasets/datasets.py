@@ -7,8 +7,8 @@ class SimpleDataset(data.Dataset):
 
     def __init__(
         self,
-        x: np.ndarray,
-        labels: np.ndarray
+        x: torch.tensor,
+        labels: torch.tensor
     ):
     
         self.data = x
@@ -18,13 +18,4 @@ class SimpleDataset(data.Dataset):
         return len(self.labels)
 
     def __getitem__(self, index):
-        X = torch.tensor(
-            self.data[index],
-            dtype=torch.float
-        )
-        y = torch.tensor(
-            self.labels[index],
-            dtype=torch.float
-        )
-
-        return X, y
+        return self.data[index], self.labels[index]

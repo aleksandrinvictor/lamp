@@ -64,6 +64,7 @@ def _train(
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
     model = model.to(device)
+    model.train()
 
     early_stopping = EarlyStopping(
         patience=early_stopping_rounds,

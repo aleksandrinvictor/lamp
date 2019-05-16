@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import ndarray
 
+import copy
+
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
@@ -51,12 +53,13 @@ def _train(
         validation_generator: Union[Iterator, Iterable],
         criterion: Callable,
         optimizer: torch.optim.Optimizer,
-        early_stopping_rounds: int = np.inf,
-        print_every: int = 10,
-        start_epoch: int = 0,
-        max_epochs: int = 100,
-        checkpoints_path: str = None,
-        inline: bool = False
+        early_stopping_rounds: int,
+        return_best_model: bool,
+        print_every: int,
+        start_epoch: int,
+        max_epochs: int,
+        checkpoints_path: str,
+        inline: bool
 ):
 
     # CUDA for PyTorch
@@ -134,6 +137,9 @@ def _train(
 
         running_loss_epoch = 0
     
+    if return_best_model:
+        return early_stopping.best_model, hist
+    
     return model, hist
 
 
@@ -149,6 +155,7 @@ def train_model(
     optimizer: str = 'adam',
     learning_rate: float = 0.01,
     early_stopping_rounds: int = 5,
+    return_best_model: bool = False,
     print_every: int = np.inf,
     checkpoint: Dict = None,
     checkpoints_path: str = None,
@@ -196,6 +203,7 @@ def train_model(
         loss_fn,
         optimizer,
         early_stopping_rounds,
+        return_best_model,
         print_every,
         start_epoch,
         max_epochs,
@@ -220,6 +228,7 @@ class EarlyStopping(object):
         self.best_score = None
         self.stop_epoch = None
         self.checkpoints_path = checkpoints_path
+        self.best_model = None
 
     def __call__(
             self,
@@ -242,8 +251,15 @@ class EarlyStopping(object):
             self.best_score = score
             self.stop_epoch = epoch
             self.counter = 0
+            self.best_model = copy.deepcopy(model)
+
             if self.checkpoints_path is not None:
-                self.__save_checkpoint(score, model, optimizer, epoch)
+                self.__save_checkpoint(
+                    score, 
+                    model, 
+                    optimizer, 
+                    epoch
+                )
 
         return False
 
